@@ -1,7 +1,7 @@
 package io.redbee.socialnetwork.users;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -13,13 +13,21 @@ import java.util.List;
  * created at 6/9/21
  */
 @RestController
+
+@RequestMapping("/api/v1/user")
 public class UserController {
 
-    @GetMapping("/users")
+    @Autowired
+    UserDao userDao;
+
+    @GetMapping()
     public List<User> status() {
-        return Collections.singletonList(new User(
-                1, "mail@pepito.com", "adsfadslfkasdjfalskdfjalskdfjlk", "CREATED", LocalDateTime.now(), "system", LocalDateTime.now(), "system"
-        ));
+        return userDao.get();
+    }
+
+    @PostMapping()
+    public void status(@RequestBody User user) {
+        userDao.save(user);
     }
 
 }
