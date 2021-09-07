@@ -1,6 +1,7 @@
 package io.redbee.socialnetwork.factory;
 
 import io.redbee.socialnetwork.users.User;
+import io.redbee.socialnetwork.users.enums.Status;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -17,7 +18,7 @@ public class UserFactory {
         return new User(1,
                 "test@test",
                 "password",
-                "OK",
+                Status.CREATED.name(),
                 now,
                 "creation_user",
                 now,
