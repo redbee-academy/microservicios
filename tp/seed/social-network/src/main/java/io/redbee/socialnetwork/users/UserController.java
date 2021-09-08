@@ -21,12 +21,12 @@ public class UserController {
     UserDao userDao;
 
     @GetMapping()
-    public List<User> status() {
+    public List<User> listUser() {
         return userDao.get();
     }
 
     @PostMapping()
-    public void status(@RequestBody User user) {
+    public void createUser(@RequestBody User user) {
         userDao.save(user);
     }
 
