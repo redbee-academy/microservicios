@@ -17,8 +17,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -30,18 +29,18 @@ public class UserControllerTest  implements HeaderFactory {
     @Autowired
     private MockMvc mockMvc;
     @MockBean
-    private UserDao userDao;
+    private UserService userService;
 
     @Autowired
     private ObjectMapper objectMapper;
 
     @Test
     @DisplayName("Given a request to get users, when call get user endpoint, then verify calls and return")
-    void GetUsers() throws Exception {
+    void getUsers() throws Exception {
 
         // Given
         List<User> users = UserFactory.getUsers();
-        when(userDao.get()).thenReturn(users);
+        when(userService.get()).thenReturn(users);
 
         // When
         this.mockMvc.perform(get("/api/v1/user")
@@ -51,7 +50,47 @@ public class UserControllerTest  implements HeaderFactory {
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(users)));
         // Then
-        verify(userDao, only()).get();
+        verify(userService, only()).get();
 
     }
+
+    @Test
+    @DisplayName("Given a user id, when call delete user endpoint, then verify calls ")
+    void deleteUser() throws Exception {
+
+        // Given
+        User user = UserFactory.getUser();
+
+        // When
+        this.mockMvc.perform(delete("/api/v1/user/" + user.getId())
+                .headers(httpHeader))
+                //then
+                .andDo(print())
+                .andExpect(status().isOk());
+        // Then
+        verify(userService, only()).delete(user.getId());
+
+    }
+
+    @Test
+    @DisplayName("Given a user id, when call delete user endpoint, then verify calls ")
+    void getUserById() throws Exception {
+
+        // Given
+        User user = UserFactory.getUser();
+        when(userService.getById(user.getId())).thenReturn(user);
+
+        // When
+        this.mockMvc.perform(get("/api/v1/user/" + user.getId())
+                .headers(httpHeader))
+                //then
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(user)));
+        // Then
+        verify(userService, only()).getById(user.getId());
+
+    }
+
 }
+

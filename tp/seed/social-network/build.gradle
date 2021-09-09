@@ -21,6 +21,15 @@ dependencies {
 	runtimeOnly 'org.postgresql:postgresql'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'io.projectreactor:reactor-test'
+
+	//lombook
+	annotationProcessor 'org.projectlombok:lombok'
+	implementation 'org.projectlombok:lombok'
+
+	/*
+	implementation "io.springfox:springfox-swagger2:3.0.0"
+	implementation "io.springfox:springfox-swagger-ui:3.0.0"
+	*/
 }
 
 test {

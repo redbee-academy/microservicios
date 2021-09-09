@@ -33,7 +33,8 @@ public class UserDao {
             "creation_user, " +
             "modification_date, " +
             "modification_user " +
-            "FROM users";
+            "FROM users " +
+            "WHERE status = 'CREATED' ";
 
     private static final String insertQuery = "" +
             "INSERT INTO users (mail, encrypted_password, status, creation_date, creation_user, modification_date, modification_user) " +
@@ -82,7 +83,7 @@ public class UserDao {
         try {
             Optional<User> result = Optional.ofNullable(
                     template.queryForObject(
-                            getQuery + " WHERE id = :id",
+                            getQuery + " AND id = :id",
                             Map.of("id", id),
                             new UserRowMapper()
                     )
