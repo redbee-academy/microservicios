@@ -1,9 +1,10 @@
-package io.redbee.socialnetwork.users;
+package io.redbee.socialnetwork.users.model;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-public class User {
+public class User implements Serializable {
     private final Integer id;
     private final String mail;
     private final String encryptedPassword;
@@ -22,6 +23,17 @@ public class User {
         this.creationUser = creationUser;
         this.modificationDate = modificationDate;
         this.modificationUser = modificationUser;
+    }
+
+    public User(String mail, String encryptedPassword) {
+        this.id = null;
+        this.mail = mail;
+        this.encryptedPassword = encryptedPassword;
+        this.status = "CREATED";
+        this.creationDate = LocalDateTime.now();
+        this.creationUser = "social-network";
+        this.modificationDate = null;
+        this.modificationUser = null;
     }
 
     public Integer getId() {

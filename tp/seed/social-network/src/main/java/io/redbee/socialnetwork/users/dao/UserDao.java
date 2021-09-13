@@ -1,14 +1,17 @@
-package io.redbee.socialnetwork.users;
+package io.redbee.socialnetwork.users.dao;
 
 import io.redbee.socialnetwork.shared.exception.RepositoryException;
+import io.redbee.socialnetwork.users.mapper.UserRowMapper;
+import io.redbee.socialnetwork.users.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.ResourceAccessException;
 
 import java.util.List;
 import java.util.Map;
@@ -67,9 +70,9 @@ public class UserDao {
         }
     }
 
-    public List<User> get() {
+    public List<User> get(Pageable pageable) {
         try {
-            List<User> result = template.query(getQuery, new UserRowMapper());
+            List<User> result = template.query(getQuery + " LIMIT " + pageable.getPageSize() + " OFFSET " + pageable.getOffset(), new UserRowMapper());
             LOGGER.info("get: users found: {}", result);
             return result;
         } catch (DataAccessException e) {
@@ -89,7 +92,7 @@ public class UserDao {
             );
             LOGGER.info("getById: user found: {}", result);
             return result;
-        } catch (ResourceAccessException e) {
+        } catch (EmptyResultDataAccessException e) {
             LOGGER.info("getById: user with id {} not found", id);
             return Optional.empty();
         } catch (DataAccessException e) {
@@ -98,20 +101,16 @@ public class UserDao {
         }
     }
 
-    public Optional<User> getByMail(String mail) {
+    public List<User> getByMail(String mail) {
         try {
-            Optional<User> result = Optional.ofNullable(
-                    template.queryForObject(
+            List<User> result =
+                    template.query(
                             getQuery + " WHERE mail = :mail",
                             Map.of("mail", mail),
                             new UserRowMapper()
-                    )
-            );
+                    );
             LOGGER.info("getByMail: user found {}", result);
             return result;
-        } catch (ResourceAccessException e) {
-            LOGGER.info("getByMail: user with id {} not found", mail);
-            return Optional.empty();
         } catch (DataAccessException e) {
             LOGGER.info("getByMail: error {} searching user with id: {}", e.getMessage(), mail);
             throw new RepositoryException();
