@@ -1,6 +1,6 @@
 package io.redbee.socialnetwork.users.controller;
 
-import io.redbee.socialnetwork.shared.controller.PaginatedController;
+import io.redbee.socialnetwork.shared.controller.SecuredController;
 import io.redbee.socialnetwork.users.mapper.UserToResponseMapper;
 import io.redbee.socialnetwork.users.model.User;
 import io.redbee.socialnetwork.users.model.UserCreationRequest;
@@ -10,10 +10,10 @@ import io.redbee.socialnetwork.users.service.UserDeleteService;
 import io.redbee.socialnetwork.users.service.UserSearchService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -25,7 +25,8 @@ import static org.springframework.http.HttpStatus.CREATED;
 
 @RestController
 @RequestMapping("/users")
-public class UserController extends PaginatedController {
+@PreAuthorize("isAuthenticated()")
+public class UserController extends SecuredController {
 
     private final UserCreationService creationService;
     private final UserSearchService searchService;
@@ -35,13 +36,12 @@ public class UserController extends PaginatedController {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
 
     public UserController(
-            ApplicationEventPublisher eventPublisher,
-            UserCreationService creationService,
             UserSearchService searchService,
+            UserCreationService creationService,
             UserDeleteService deleteService,
             UserToResponseMapper responseMapper
     ) {
-        super(eventPublisher);
+        super(searchService);
         this.creationService = creationService;
         this.searchService = searchService;
         this.deleteService = deleteService;
@@ -57,8 +57,6 @@ public class UserController extends PaginatedController {
         LOGGER.info("get: searching users");
 
         Page<User> responsePage = searchService.getPage(pageable);
-
-        handlePaginationLinks(responsePage, uriBuilder, response);
 
         LOGGER.info("get: users found");
         return responsePage
@@ -76,6 +74,7 @@ public class UserController extends PaginatedController {
 
     @PostMapping()
     @ResponseStatus(CREATED)
+    @PreAuthorize("permitAll()")
     public UserResponse create(@RequestBody @Valid UserCreationRequest user) {
         LOGGER.info("create: creating user {}", user.getMail());
         UserResponse response = mapResponse(
@@ -87,7 +86,9 @@ public class UserController extends PaginatedController {
 
     @DeleteMapping("/{id}")
     public UserResponse delete(@PathVariable Integer id) {
+        validateUserIsOwner(id);
         LOGGER.info("delete: deleting user {}", id);
+        SecurityContextHolder.getContext().getAuthentication().getDetails();
         UserResponse response = mapResponse(deleteService.delete(id));
         LOGGER.info("delete: user deleted: {}", response);
         return response;
@@ -97,7 +98,4 @@ public class UserController extends PaginatedController {
         return responseMapper.map(user);
     }
 
-    private void handlePaginationLinks(Page<User> page, UriComponentsBuilder uriBuilder, HttpServletResponse response) {
-        handlePaginationLinks(User.class, page.getPageable(), page.getTotalPages(), response, uriBuilder);
-    }
 }

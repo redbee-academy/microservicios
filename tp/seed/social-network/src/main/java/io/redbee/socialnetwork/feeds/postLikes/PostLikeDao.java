@@ -24,12 +24,12 @@ public class PostLikeDao {
 
     private static final String getQuery = "SELECT " +
             "post_id, " +
-            "user_id, " +
+            "user_id " +
             "FROM post_likes";
 
     private static final String insertQuery = "" +
             "INSERT INTO post_likes (post_id, user_id) " +
-            "VALUES (:post_id, :user_id,) ";
+            "VALUES (:post_id, :user_id) ";
 
     private static final String deleteQuery = "" +
             "DELETE FROM post_likes " +
@@ -59,7 +59,7 @@ public class PostLikeDao {
         try {
             List<PostLike> result =
                     template.query(
-                            getQuery + "WHERE post_id = :post_id",
+                            getQuery + " WHERE post_id = :post_id",
                             new MapSqlParameterSource(Map.of("post_id", postId)),
                             new PostLikeRowMapper()
                     );

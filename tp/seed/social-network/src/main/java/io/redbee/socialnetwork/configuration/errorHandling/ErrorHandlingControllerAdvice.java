@@ -1,18 +1,18 @@
 package io.redbee.socialnetwork.configuration.errorHandling;
 
-import io.redbee.socialnetwork.users.exception.AccountAlreadyExistsException;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 
 @ControllerAdvice
 class ErrorHandlingControllerAdvice {
@@ -41,6 +41,16 @@ class ErrorHandlingControllerAdvice {
                     new Violation(fieldError.getField(), fieldError.getDefaultMessage()));
         }
         return error;
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> onResponseStatusException(
+            ResponseStatusException e
+    ) {
+        return new ResponseEntity<>(
+                new ErrorResponse(e.getReason()),
+                e.getStatus()
+        );
     }
 
 }

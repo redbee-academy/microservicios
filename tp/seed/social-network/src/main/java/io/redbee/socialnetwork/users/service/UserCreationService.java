@@ -6,18 +6,21 @@ import io.redbee.socialnetwork.users.exception.AccountAlreadyExistsException;
 import io.redbee.socialnetwork.users.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserCreationService {
     private final UserSearchService searchService;
     private final UserDao dao;
+    private final PasswordEncoder passwordEncoder;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserCreationService.class);
 
-    public UserCreationService(UserSearchService searchService, UserDao dao) {
+    public UserCreationService(UserSearchService searchService, UserDao dao, PasswordEncoder passwordEncoder) {
         this.searchService = searchService;
         this.dao = dao;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public User create(String mail, String password) {
@@ -33,7 +36,7 @@ public class UserCreationService {
     private User buildWith(String mail, String password) {
         return new UserBuilder()
                 .mail(mail)
-                .password(password)
+                .password(passwordEncoder.encode(password))
                 .status("CREATED")
                 .creationAuditFields()
                 .build();

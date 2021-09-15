@@ -8,17 +8,20 @@ import io.redbee.socialnetwork.feeds.posts.model.PostResponse;
 import io.redbee.socialnetwork.feeds.posts.service.PostCreationService;
 import io.redbee.socialnetwork.feeds.posts.service.PostDeleteService;
 import io.redbee.socialnetwork.feeds.posts.service.PostSearchService;
+import io.redbee.socialnetwork.shared.controller.SecuredController;
+import io.redbee.socialnetwork.users.service.UserSearchService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping()
-public class PostController {
+@PreAuthorize("isAuthenticated()")
+public class PostController extends SecuredController {
     private final PostSearchService searchService;
     private final PostCreationService creationService;
     private final PostDeleteService deleteService;
@@ -27,11 +30,12 @@ public class PostController {
     private static final Logger LOGGER = LoggerFactory.getLogger(PostController.class);
 
     public PostController(
+            UserSearchService userSearchService,
             PostSearchService searchService,
             PostCreationService creationService,
             PostDeleteService deleteService,
-            PostToResponseMapper responseMapper
-    ) {
+            PostToResponseMapper responseMapper) {
+        super(userSearchService);
         this.searchService = searchService;
         this.creationService = creationService;
         this.deleteService = deleteService;
@@ -67,9 +71,9 @@ public class PostController {
     @PostMapping("/users/{userId}/posts")
     public PostResponse create(
             @RequestBody PostCreationRequest post,
-            @PathVariable Integer userId,
-            @RequestHeader Integer requestUserId
+            @PathVariable Integer userId
     ) {
+        validateUserIsOwner(userId);
         LOGGER.info("create: creating post for {}", userId);
 
         PostResponse response = mapResponse(creationService.create(userId, post));
@@ -81,9 +85,9 @@ public class PostController {
     @DeleteMapping("/users/{userId}/posts/{postId}")
     public PostResponse delete(
             @PathVariable Integer userId,
-            @PathVariable Integer postId,
-            @RequestHeader Integer requestUserId
+            @PathVariable Integer postId
     ) {
+        validateUserIsOwner(userId);
         LOGGER.info("delete: deleting post {}", postId);
 
         PostResponse response = mapResponse(deleteService.delete(userId, postId));
