@@ -20,8 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@PreAuthorize("isAuthenticated()")
-public class PostController extends SecuredController {
+public class PostController {
     private final PostSearchService searchService;
     private final PostCreationService creationService;
     private final PostDeleteService deleteService;
@@ -30,12 +29,10 @@ public class PostController extends SecuredController {
     private static final Logger LOGGER = LoggerFactory.getLogger(PostController.class);
 
     public PostController(
-            UserSearchService userSearchService,
             PostSearchService searchService,
             PostCreationService creationService,
             PostDeleteService deleteService,
             PostToResponseMapper responseMapper) {
-        super(userSearchService);
         this.searchService = searchService;
         this.creationService = creationService;
         this.deleteService = deleteService;
@@ -58,9 +55,9 @@ public class PostController extends SecuredController {
     public PostResponse getById(
             @PathVariable Integer userId,
             @PathVariable Integer postId,
-            @RequestHeader Integer requestUserId
+            @RequestHeader Integer principalUserId
     ) {
-        LOGGER.info("getById: searching post for user: {}, with id {} and made by {}", requestUserId, postId, userId);
+        LOGGER.info("getById: searching post for user: {}, with id {} and made by {}", principalUserId, postId, userId);
 
         PostResponse response = mapResponse(searchService.getBy(userId, postId));
 
@@ -73,7 +70,6 @@ public class PostController extends SecuredController {
             @RequestBody PostCreationRequest post,
             @PathVariable Integer userId
     ) {
-        validateUserIsOwner(userId);
         LOGGER.info("create: creating post for {}", userId);
 
         PostResponse response = mapResponse(creationService.create(userId, post));
@@ -87,7 +83,6 @@ public class PostController extends SecuredController {
             @PathVariable Integer userId,
             @PathVariable Integer postId
     ) {
-        validateUserIsOwner(userId);
         LOGGER.info("delete: deleting post {}", postId);
 
         PostResponse response = mapResponse(deleteService.delete(userId, postId));

@@ -25,8 +25,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 
 @RestController
 @RequestMapping("/users")
-@PreAuthorize("isAuthenticated()")
-public class UserController extends SecuredController {
+public class UserController {
 
     private final UserCreationService creationService;
     private final UserSearchService searchService;
@@ -41,7 +40,6 @@ public class UserController extends SecuredController {
             UserDeleteService deleteService,
             UserToResponseMapper responseMapper
     ) {
-        super(searchService);
         this.creationService = creationService;
         this.searchService = searchService;
         this.deleteService = deleteService;
@@ -74,7 +72,6 @@ public class UserController extends SecuredController {
 
     @PostMapping()
     @ResponseStatus(CREATED)
-    @PreAuthorize("permitAll()")
     public UserResponse create(@RequestBody @Valid UserCreationRequest user) {
         LOGGER.info("create: creating user {}", user.getMail());
         UserResponse response = mapResponse(
@@ -86,9 +83,7 @@ public class UserController extends SecuredController {
 
     @DeleteMapping("/{id}")
     public UserResponse delete(@PathVariable Integer id) {
-        validateUserIsOwner(id);
         LOGGER.info("delete: deleting user {}", id);
-        SecurityContextHolder.getContext().getAuthentication().getDetails();
         UserResponse response = mapResponse(deleteService.delete(id));
         LOGGER.info("delete: user deleted: {}", response);
         return response;

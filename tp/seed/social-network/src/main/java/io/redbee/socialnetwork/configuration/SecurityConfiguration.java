@@ -3,6 +3,7 @@ package io.redbee.socialnetwork.configuration;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -40,13 +41,17 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         auth.jdbcAuthentication()
                 .dataSource(dataSource)
                 .usersByUsernameQuery(userQuery)
-                .authoritiesByUsernameQuery("select ? as username, 'ADMIN' as authority")
+                .authoritiesByUsernameQuery("select ? as username, 'sdfaldkhfadslkj' as authority")
                 .passwordEncoder(passwordEncoder());
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
+                .authorizeRequests()
+                .antMatchers("/users/**").authenticated()
+                .antMatchers("/posts").permitAll()
+                .antMatchers(HttpMethod.DELETE, "/users").hasRole("ADMIN").and()
                 .sessionManagement().sessionCreationPolicy(STATELESS).and()
                 .csrf().disable()
                 .httpBasic();
