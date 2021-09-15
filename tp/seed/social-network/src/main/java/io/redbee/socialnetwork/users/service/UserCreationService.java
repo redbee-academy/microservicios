@@ -1,14 +1,12 @@
 package io.redbee.socialnetwork.users.service;
 
-import io.redbee.socialnetwork.shared.exception.RepositoryException;
+import io.redbee.socialnetwork.users.builder.UserBuilder;
 import io.redbee.socialnetwork.users.dao.UserDao;
 import io.redbee.socialnetwork.users.exception.AccountAlreadyExistsException;
 import io.redbee.socialnetwork.users.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 public class UserCreationService {
@@ -23,12 +21,22 @@ public class UserCreationService {
     }
 
     public User create(String mail, String password) {
-        validateAccountAlreadyExists(mail);
+        User user = buildWith(mail, password);
 
-        dao.save(new User(mail, password));
+        validateAccountAlreadyExists(user.getMail());
 
-        return getActive(mail)
-                .orElseThrow(RepositoryException::new);
+        int id = save(user);
+
+        return user.copyId(id);
+    }
+
+    private User buildWith(String mail, String password) {
+        return new UserBuilder()
+                .mail(mail)
+                .password(password)
+                .status("CREATED")
+                .creationAuditFields()
+                .build();
     }
 
     private void validateAccountAlreadyExists(String mail) {
@@ -36,14 +44,17 @@ public class UserCreationService {
             LOGGER.info("validateAccountAlreadyExists: account with mail {} already exists", mail);
             throw new AccountAlreadyExistsException(mail);
         }
+        LOGGER.info("mail {} doesnt have an account yet", mail);
     }
 
     private boolean exists(String mail) {
-        Optional<User> user = getActive(mail);
-        return user.isPresent();
+        return searchService.getActiveBy(mail).isPresent();
     }
 
-    private Optional<User> getActive(String mail) {
-        return searchService.getActiveBy(mail);
+    private int save(User user) {
+        int id = dao.save(user);
+        LOGGER.info("save: user {} saved", id);
+        return id;
     }
+
 }

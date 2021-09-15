@@ -1,4 +1,6 @@
-package io.redbee.socialnetwork.feeds.posts;
+package io.redbee.socialnetwork.feeds.posts.model;
+
+import io.redbee.socialnetwork.feeds.posts.builder.PostBuilder;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -81,5 +83,33 @@ public class Post {
                 ", modificationDate=" + modificationDate +
                 ", modificationUser='" + modificationUser + '\'' +
                 '}';
+    }
+
+    public Post copyId(Integer id) {
+        return new PostBuilder()
+                .basedOn(this)
+                .id(id)
+                .build();
+    }
+
+    public Post copyContent(String content) {
+        return new PostBuilder()
+                .basedOn(this)
+                .content(content)
+                .build();
+    }
+
+    public Post copyStatus(String status) {
+        return new PostBuilder()
+                .basedOn(this)
+                .status(status)
+                .build();
+    }
+
+    public Post copyModificationAudit() {
+        return new PostBuilder()
+                .basedOn(this)
+                .updatedAuditFields()
+                .build();
     }
 }

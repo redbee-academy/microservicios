@@ -5,8 +5,8 @@ import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
+
+import static io.redbee.socialnetwork.shared.util.LocalDateTimeUtils.formatDate;
 
 public class UserRowMapper implements RowMapper<User> {
 
@@ -17,15 +17,11 @@ public class UserRowMapper implements RowMapper<User> {
                 rs.getString("mail"),
                 rs.getString("encrypted_password"),
                 rs.getString("status"),
-                rs.getTimestamp("creation_date").toLocalDateTime(),
+                formatDate(rs.getTimestamp("creation_date")),
                 rs.getString("creation_user"),
                 formatDate(rs.getTimestamp("modification_date")),
                 rs.getString("modification_user")
         );
-    }
-
-    private LocalDateTime formatDate(Timestamp timestamp) {
-        return timestamp != null ? timestamp.toLocalDateTime() : null;
     }
 
 }

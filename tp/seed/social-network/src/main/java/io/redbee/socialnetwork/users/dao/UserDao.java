@@ -11,11 +11,16 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+
+import static java.util.Collections.emptyMap;
 
 @Component
 public class UserDao {
@@ -26,6 +31,8 @@ public class UserDao {
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserDao.class);
+
+    private static final String getTotal = "SELECT COUNT(*) FROM users ";
 
     private static final String getQuery = "SELECT " +
             "id, " +
@@ -51,10 +58,13 @@ public class UserDao {
             "    modification_user  = :modification_user " +
             "WHERE id = :id";
 
-    public void save(User user) {
+    public int save(User user) {
         try {
-            template.update(insertQuery, userToParamMap(user));
+            KeyHolder keyHolder = new GeneratedKeyHolder();
+            template.update(insertQuery, userToParamMap(user), keyHolder);
             LOGGER.info("save: user {} saved", user.getMail());
+
+            return (int) Objects.requireNonNull(keyHolder.getKeys()).get("id");
         } catch (Exception e) {
             LOGGER.info("save: error {}, saving user {}", e.getMessage(), user.getMail());
             throw new RepositoryException();
@@ -70,13 +80,16 @@ public class UserDao {
         }
     }
 
-    public List<User> get(Pageable pageable) {
+    public List<User> getPage(Pageable pageable) {
         try {
-            List<User> result = template.query(getQuery + " LIMIT " + pageable.getPageSize() + " OFFSET " + pageable.getOffset(), new UserRowMapper());
-            LOGGER.info("get: users found: {}", result);
+            List<User> result = template.query(
+                    getQuery + " LIMIT " + pageable.getPageSize() + " OFFSET " + pageable.getOffset(),
+                    new UserRowMapper()
+            );
+            LOGGER.info("getPage: users found: {}", result);
             return result;
         } catch (DataAccessException e) {
-            LOGGER.info("get: error {} searching users", e.getMessage());
+            LOGGER.info("getPage: error {} searching users", e.getMessage());
             throw new RepositoryException();
         }
     }
@@ -113,6 +126,22 @@ public class UserDao {
             return result;
         } catch (DataAccessException e) {
             LOGGER.info("getByMail: error {} searching user with id: {}", e.getMessage(), mail);
+            throw new RepositoryException();
+        }
+    }
+
+    public Integer getTotal() {
+        try {
+            Integer result = template.queryForObject(
+                    getTotal,
+                    emptyMap(),
+                    Integer.class
+            );
+
+            LOGGER.info("getTotal: total {}", result);
+            return result;
+        } catch (DataAccessException e) {
+            LOGGER.info("getTotal: error {} getting total users", e.getMessage());
             throw new RepositoryException();
         }
     }

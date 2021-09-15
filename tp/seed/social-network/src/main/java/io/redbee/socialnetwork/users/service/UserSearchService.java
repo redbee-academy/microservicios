@@ -24,15 +24,19 @@ public class UserSearchService {
         this.dao = dao;
     }
 
-    public Page<User> get(Pageable pageable) {
-        List<User> usersFound = dao.get(pageable);
-        LOGGER.info("get: {} users found", usersFound.size());
-        return new PageImpl<User>(usersFound, pageable, 1000L);
+    public Page<User> getPage(Pageable pageable) {
+        List<User> usersFound = dao.getPage(pageable);
+        Integer totalUsers = dao.getTotal();
+
+        LOGGER.info("getPage: {} users found", usersFound.size());
+        return new PageImpl<User>(usersFound, pageable, totalUsers);
     }
 
-    public User get(Integer id) {
-        User userFound = dao.getById(id).orElseThrow(UserNotFoundException::new);
-        LOGGER.info("get: user found {}", userFound);
+    public User getBy(Integer id) {
+        User userFound = dao.getById(id)
+                .orElseThrow(UserNotFoundException::new);
+
+        LOGGER.info("getBy: user found {}", userFound);
         return userFound;
     }
 

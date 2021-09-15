@@ -29,6 +29,24 @@ public class UserBuilder {
         return this;
     }
 
+    public UserBuilder password(String password) {
+        this.encryptedPassword = password;
+        return this;
+    }
+
+    public UserBuilder updatedAuditFields() {
+        this.modificationDate = LocalDateTime.now();
+        this.modificationUser = "social-network";
+        return this;
+    }
+
+    public UserBuilder creationAuditFields() {
+        this.creationDate = LocalDateTime.now();
+        this.creationUser = "social-network";
+
+        return this;
+    }
+
     public UserBuilder modificationDate(LocalDateTime modificationDate) {
         this.modificationDate = modificationDate;
         return this;

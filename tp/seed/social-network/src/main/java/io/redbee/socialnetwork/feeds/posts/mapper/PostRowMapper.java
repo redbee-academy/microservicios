@@ -1,9 +1,12 @@
-package io.redbee.socialnetwork.feeds.posts;
+package io.redbee.socialnetwork.feeds.posts.mapper;
 
+import io.redbee.socialnetwork.feeds.posts.model.Post;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import static io.redbee.socialnetwork.shared.util.LocalDateTimeUtils.formatDate;
 
 public class PostRowMapper implements RowMapper<Post> {
 
@@ -14,9 +17,9 @@ public class PostRowMapper implements RowMapper<Post> {
                 rs.getInt("user_id"),
                 rs.getString("content"),
                 rs.getString("status"),
-                rs.getTimestamp("creation_date").toLocalDateTime(),
+                formatDate(rs.getTimestamp("creation_date")),
                 rs.getString("creation_user"),
-                rs.getTimestamp("modification_date").toLocalDateTime(),
+                formatDate(rs.getTimestamp("modification_date")),
                 rs.getString("modification_user")
         );
     }

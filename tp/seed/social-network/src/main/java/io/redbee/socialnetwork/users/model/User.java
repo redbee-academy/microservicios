@@ -1,5 +1,7 @@
 package io.redbee.socialnetwork.users.model;
 
+import io.redbee.socialnetwork.users.builder.UserBuilder;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -23,17 +25,6 @@ public class User implements Serializable {
         this.creationUser = creationUser;
         this.modificationDate = modificationDate;
         this.modificationUser = modificationUser;
-    }
-
-    public User(String mail, String encryptedPassword) {
-        this.id = null;
-        this.mail = mail;
-        this.encryptedPassword = encryptedPassword;
-        this.status = "CREATED";
-        this.creationDate = LocalDateTime.now();
-        this.creationUser = "social-network";
-        this.modificationDate = null;
-        this.modificationUser = null;
     }
 
     public Integer getId() {
@@ -93,5 +84,33 @@ public class User implements Serializable {
                 ", modificationDate=" + modificationDate +
                 ", modificationUser='" + modificationUser + '\'' +
                 '}';
+    }
+
+    public User copyStatus(String status) {
+        return new UserBuilder()
+                .basedOn(this)
+                .status(status)
+                .build();
+    }
+
+    public User copyMail(String mail) {
+        return new UserBuilder()
+                .basedOn(this)
+                .mail(mail)
+                .build();
+    }
+
+    public User copyId(Integer id) {
+        return new UserBuilder()
+                .basedOn(this)
+                .id(id)
+                .build();
+    }
+
+    public User copyModificationAudit() {
+        return new UserBuilder()
+                .basedOn(this)
+                .updatedAuditFields()
+                .build();
     }
 }

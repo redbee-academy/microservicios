@@ -3,11 +3,14 @@ package io.redbee.socialnetwork.feeds.postLikes;
 import io.redbee.socialnetwork.shared.exception.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Component
 public class PostLikeDao {
@@ -52,13 +55,38 @@ public class PostLikeDao {
         }
     }
 
-    public List<PostLike> get() {
+    public List<PostLike> getAllBy(Integer postId) {
         try {
-            List<PostLike> result = template.query(getQuery, new PostLikeRowMapper());
+            List<PostLike> result =
+                    template.query(
+                            getQuery + "WHERE post_id = :post_id",
+                            new MapSqlParameterSource(Map.of("post_id", postId)),
+                            new PostLikeRowMapper()
+                    );
             LOGGER.info("get: likes found {}", result);
             return result;
         } catch (Exception e) {
             LOGGER.info("get: error {} searching likes", e.getMessage());
+            throw new RepositoryException();
+        }
+    }
+
+    public Optional<PostLike> getBy(PostLike like) {
+        try {
+            Optional<PostLike> result = Optional.ofNullable(
+                    template.queryForObject(
+                            getQuery + " WHERE user_id = :user_id AND post_id = :post_id",
+                            postLikeToParamSource(like),
+                            new PostLikeRowMapper()
+                    )
+            );
+            LOGGER.info("getBy: like found {}", result);
+            return result;
+        } catch (EmptyResultDataAccessException e) {
+            LOGGER.info("getBy: like made by {} in post {} not found", like.getUserId(), like.getPostId());
+            return Optional.empty();
+        } catch (Exception e) {
+            LOGGER.info("getBy: error {} searching like", e.getMessage());
             throw new RepositoryException();
         }
     }

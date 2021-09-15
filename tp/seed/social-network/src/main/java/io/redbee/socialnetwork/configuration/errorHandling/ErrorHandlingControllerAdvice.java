@@ -1,5 +1,6 @@
 package io.redbee.socialnetwork.configuration.errorHandling;
 
+import io.redbee.socialnetwork.users.exception.AccountAlreadyExistsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -11,6 +12,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
 
 @ControllerAdvice
 class ErrorHandlingControllerAdvice {

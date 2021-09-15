@@ -6,7 +6,10 @@ import java.util.Objects;
 
 public class UserCreationRequest {
     @NotNull
-    @Pattern(regexp = "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$", message = "invalid mail format")
+    @Pattern(
+            regexp = "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$",
+            message = "invalid mail format"
+    )
     private String mail;
 
     @NotNull

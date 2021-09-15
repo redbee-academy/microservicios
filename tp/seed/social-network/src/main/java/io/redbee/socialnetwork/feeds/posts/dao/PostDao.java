@@ -1,17 +1,25 @@
-package io.redbee.socialnetwork.feeds.posts;
+package io.redbee.socialnetwork.feeds.posts.dao;
 
+import io.redbee.socialnetwork.feeds.posts.mapper.PostRowMapper;
+import io.redbee.socialnetwork.feeds.posts.model.Post;
 import io.redbee.socialnetwork.shared.exception.RepositoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+
+import static java.util.Collections.emptyMap;
 
 @Component
 public class PostDao {
@@ -22,6 +30,8 @@ public class PostDao {
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PostDao.class);
+
+    private static final String getTotal = "SELECT COUNT(*) FROM posts ";
 
     private static final String getQuery = "SELECT " +
             "id, " +
@@ -46,12 +56,16 @@ public class PostDao {
             "    modification_user  = :modification_user " +
             "WHERE id = :id";
 
-    public void save(Post post) {
+    public int save(Post post) {
         try {
-            template.update(insertQuery, postToParamSource(post));
+            KeyHolder keyHolder = new GeneratedKeyHolder();
+            template.update(insertQuery, postToParamSource(post), keyHolder);
             LOGGER.info("save: post from user {} saved", post.getUserId());
+
+            return (int) Objects.requireNonNull(keyHolder.getKeys()).get("id");
         } catch (Exception e) {
             LOGGER.info("save: error {} saving post from user {}", e.getMessage(), post.getUserId());
+            throw new RepositoryException();
         }
     }
 
@@ -61,26 +75,30 @@ public class PostDao {
             LOGGER.info("update: post {} updated", post.getId());
         } catch (Exception e) {
             LOGGER.info("update: error {} updating post {}", e.getMessage(), post.getId());
-        }
-    }
-
-    public List<Post> get() {
-        try {
-            List<Post> result = template.query(getQuery, new PostRowMapper());
-            LOGGER.info("get: posts found: {}", result);
-            return result;
-        } catch (DataAccessException e) {
-            LOGGER.info("get: error {} searching posts", e.getMessage());
             throw new RepositoryException();
         }
     }
 
-    public Optional<Post> getById(Integer id) {
+    public List<Post> getPage(Pageable pageable) {
+        try {
+            List<Post> result = template.query(
+                    getQuery + " LIMIT " + pageable.getPageSize() + " OFFSET " + pageable.getOffset(),
+                    new PostRowMapper()
+            );
+            LOGGER.info("getPage: posts found: {}", result);
+            return result;
+        } catch (DataAccessException e) {
+            LOGGER.info("getPage: error {} searching posts", e.getMessage());
+            throw new RepositoryException();
+        }
+    }
+
+    public Optional<Post> getById(Integer userId, Integer id) {
         try {
             Optional<Post> result = Optional.ofNullable(
                     template.queryForObject(
-                            getQuery + " WHERE id = :id",
-                            Map.of("id", id),
+                            getQuery + " WHERE id = :id AND user_id = :user_id",
+                            Map.of("id", id, "user_id", userId),
                             new PostRowMapper()
                     )
             );
@@ -95,22 +113,34 @@ public class PostDao {
         }
     }
 
-    public Optional<Post> getByUserId(Integer userId) {
+    public List<Post> getByUserId(Integer userId) {
         try {
-            Optional<Post> result = Optional.ofNullable(
-                    template.queryForObject(
+            List<Post> result =
+                    template.query(
                             getQuery + " WHERE user_id = :user_id",
                             Map.of("user_id", userId),
                             new PostRowMapper()
-                    )
-            );
+                    );
             LOGGER.info("getByUserId: post found: {}", result);
             return result;
-        } catch (ResourceAccessException e) {
-            LOGGER.info("getByUserId: post with user id {} not found", userId);
-            return Optional.empty();
         } catch (DataAccessException e) {
             LOGGER.info("getByUserId: error {} searching post with user id: {}", e.getMessage(), userId);
+            throw new RepositoryException();
+        }
+    }
+
+    public Integer getTotal() {
+        try {
+            Integer result = template.queryForObject(
+                    getTotal,
+                    emptyMap(),
+                    Integer.class
+            );
+
+            LOGGER.info("getTotal: total {}", result);
+            return result;
+        } catch (DataAccessException e) {
+            LOGGER.info("getTotal: error {} getting total posts", e.getMessage());
             throw new RepositoryException();
         }
     }
