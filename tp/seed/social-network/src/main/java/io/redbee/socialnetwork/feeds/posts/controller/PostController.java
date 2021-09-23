@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@PreAuthorize("isAuthenticated()")
+@PreAuthorize("permitAll()")
 public class PostController extends SecuredController {
     private final PostSearchService searchService;
     private final PostCreationService creationService;

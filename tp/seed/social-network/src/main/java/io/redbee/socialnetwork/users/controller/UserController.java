@@ -25,7 +25,6 @@ import static org.springframework.http.HttpStatus.CREATED;
 
 @RestController
 @RequestMapping("/users")
-@PreAuthorize("isAuthenticated()")
 public class UserController extends SecuredController {
 
     private final UserCreationService creationService;
@@ -49,6 +48,7 @@ public class UserController extends SecuredController {
     }
 
     @GetMapping()
+    @PreAuthorize("permitAll()")
     public List<UserResponse> get(
             Pageable pageable,
             UriComponentsBuilder uriBuilder,
