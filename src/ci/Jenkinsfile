@@ -1,0 +1,19 @@
+pipelinegradle(
+  appId: 'test/microservicios',
+  builderImage: 'gradlebuild:7.2-jdk11-android-alpine',
+  dockerfile: 'Dockerfile.java11',
+  pact: [
+            pacticipant: 'microservicios',
+            cli        : 'pactfoundation/pact-cli:0.24.0.0',
+            verify     : [
+                enabled      : false,
+                port         : 59000,
+                task         : [
+                        strategy: 'use_cli',
+                        command : 'gradle pactServerStart'
+                ],
+                enablePending: false,
+                updateStateEndpoint: 'pact/states'
+                ]
+          ]
+)
