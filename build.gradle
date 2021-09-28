@@ -4,7 +4,12 @@ plugins {
 	id 'java'
 	id 'org.sonarqube' version '2.8'
 }
-
+def app = [
+    group: 'com.academy.redbee',
+    name: 'ms-test',
+    version: '0.0.1',
+    versionType: 'SNAPSHOT'
+]
 group = 'io.redbee'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
